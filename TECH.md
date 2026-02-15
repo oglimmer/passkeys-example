@@ -2,6 +2,81 @@
 
 This guide covers what you need to do to add passkey-based registration and login to a Spring Boot web application using Spring Security's WebAuthn module.
 
+## How It Works
+
+Both registration and authentication follow the same three-leg pattern between Browser, Server, and Authenticator:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│ REGISTRATION (Attestation)                                               │
+│                                                                          │
+│  Browser                     Server                    Authenticator     │
+│    │                           │                            │            │
+│    │  POST /webauthn/          │                            │            │
+│    │  register/options         │                            │            │
+│    │ ────────────────────────► │                            │            │
+│    │                           │  generate challenge,       │            │
+│    │                           │  build CreationOptions     │            │
+│    │  ◄──────────────────────  │                            │            │
+│    │  PublicKeyCredential      │                            │            │
+│    │  CreationOptions (JSON)   │                            │            │
+│    │                           │                            │            │
+│    │  navigator.credentials.create(options)                 │            │
+│    │ ──────────────────────────────────────────────────────► │            │
+│    │                                                        │  create    │
+│    │                                                        │  key pair, │
+│    │                                                        │  sign      │
+│    │  ◄──────────────────────────────────────────────────── │  challenge │
+│    │  attestation response                                  │            │
+│    │  (credentialId, publicKey, signedChallenge)             │            │
+│    │                           │                            │            │
+│    │  POST /webauthn/register  │                            │            │
+│    │  (attestation response)   │                            │            │
+│    │ ────────────────────────► │                            │            │
+│    │                           │  verify signature,         │            │
+│    │                           │  store public key          │            │
+│    │  ◄──────────────────────  │                            │            │
+│    │  success                  │                            │            │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ AUTHENTICATION (Assertion)                                               │
+│                                                                          │
+│  Browser                     Server                    Authenticator     │
+│    │                           │                            │            │
+│    │  POST /webauthn/          │                            │            │
+│    │  authenticate/options     │                            │            │
+│    │ ────────────────────────► │                            │            │
+│    │                           │  generate challenge,       │            │
+│    │                           │  build RequestOptions      │            │
+│    │  ◄──────────────────────  │                            │            │
+│    │  PublicKeyCredential      │                            │            │
+│    │  RequestOptions (JSON)    │                            │            │
+│    │                           │                            │            │
+│    │  navigator.credentials.get(options)                    │            │
+│    │ ──────────────────────────────────────────────────────► │            │
+│    │                                                        │  find      │
+│    │                                                        │  key pair, │
+│    │                                                        │  sign      │
+│    │  ◄──────────────────────────────────────────────────── │  challenge │
+│    │  assertion response                                    │            │
+│    │  (credentialId, signedChallenge, userHandle)            │            │
+│    │                           │                            │            │
+│    │  POST /login/webauthn     │                            │            │
+│    │  (assertion response)     │                            │            │
+│    │ ────────────────────────► │                            │            │
+│    │                           │  verify signature against  │            │
+│    │                           │  stored public key,        │            │
+│    │                           │  establish session          │            │
+│    │  ◄──────────────────────  │                            │            │
+│    │  authenticated session    │                            │            │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+The server never sees the private key. It only stores the public key during registration and verifies signatures against it during authentication. Spring Security handles all the cryptographic verification internally -- you provide the storage layer.
+
 ## Dependencies
 
 Add the Spring Security WebAuthn module alongside the standard Spring Security starter:
