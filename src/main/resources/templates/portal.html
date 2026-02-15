@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
+    <title>Portal - Passkeys Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .container { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding: 24px 0; border-bottom: 1px solid #e0e0e0; }
+        .header h1 { font-size: 1.5rem; color: #1a1a2e; }
+        .card { background: white; border-radius: 12px; padding: 32px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card h2 { font-size: 1.2rem; margin-bottom: 16px; color: #1a1a2e; }
+        .user-info { color: #666; margin-bottom: 8px; }
+        .passkey-list { list-style: none; padding: 0; }
+        .passkey-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; }
+        .passkey-label { font-weight: 600; }
+        .passkey-date { font-size: 0.85rem; color: #999; }
+        .empty-state { color: #999; font-style: italic; padding: 16px 0; }
+        .btn { display: inline-block; padding: 12px 24px; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: #1a1a2e; color: white; }
+        .btn-primary:hover { background: #16213e; }
+        .btn-danger { background: #ef5350; color: white; font-size: 0.85rem; padding: 8px 16px; }
+        .btn-danger:hover { background: #e53935; }
+        .btn-outline { background: white; color: #1a1a2e; border: 2px solid #e0e0e0; }
+        .btn-outline:hover { background: #f5f5f5; }
+        .actions { margin-top: 16px; display: flex; gap: 12px; }
+        .register-section { margin-top: 16px; }
+        .register-section label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+        .register-section input { padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; width: 250px; margin-right: 8px; }
+        .register-section input:focus { outline: none; border-color: #1a1a2e; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; }
+        .alert-error { background: #ffebee; color: #c62828; }
+        #passkey-message { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Portal</h1>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="btn btn-outline">Sign Out</button>
+            </form>
+        </div>
+
+        <div id="passkey-message" class="alert"></div>
+
+        <div class="card">
+            <h2>Welcome!</h2>
+            <p class="user-info">Signed in as <strong th:text="${email}"></strong></p>
+        </div>
+
+        <div class="card">
+            <h2>Your Passkeys</h2>
+
+            <ul class="passkey-list" th:if="${passkeys != null and !passkeys.isEmpty()}">
+                <li th:each="pk : ${passkeys}">
+                    <div>
+                        <div class="passkey-label" th:text="${pk.label}"></div>
+                        <div class="passkey-date">
+                            Registered <span th:text="${#temporals.format(pk.createdAt, 'MMM d, yyyy')}"></span>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" data-action="delete-passkey" th:data-credential-id="${pk.credentialIdBase64}">Remove</button>
+                </li>
+            </ul>
+            <p class="empty-state" th:if="${passkeys == null or passkeys.isEmpty()}">No passkeys registered yet.</p>
+
+            <div class="register-section">
+                <label for="passkey-label">Register a new passkey</label>
+                <div style="display: flex; align-items: center; margin-top: 4px;">
+                    <input type="text" id="passkey-label" placeholder="e.g. MacBook Pro" value="My Passkey">
+                    <button data-action="register-passkey" class="btn btn-primary">Register Passkey</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/passkeys.js}"></script>
+</body>
+</html>

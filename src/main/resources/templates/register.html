@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
+    <title>Register - Passkeys Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .container { max-width: 420px; margin: 80px auto; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        h1 { font-size: 1.8rem; margin-bottom: 8px; color: #1a1a2e; }
+        .subtitle { color: #666; margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: #1a1a2e; }
+        .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #1a1a2e; color: white; margin-top: 8px; }
+        .btn-primary:hover { background: #16213e; }
+        .btn-secondary { background: white; color: #1a1a2e; border: 2px solid #1a1a2e; margin-top: 8px; }
+        .btn-secondary:hover { background: #f5f5f5; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .divider { text-align: center; color: #999; font-size: 0.85rem; margin: 12px 0; }
+        .error { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; }
+        .link { text-align: center; margin-top: 20px; color: #666; }
+        .link a { color: #1a1a2e; font-weight: 600; }
+        .password-fields { display: none; }
+        .password-fields.visible { display: block; }
+        #passkey-error { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Account</h1>
+        <p class="subtitle">Register with your email</p>
+
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+        <div id="passkey-error" class="error"></div>
+
+        <form th:action="@{/register}" method="post" id="registerForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required autofocus placeholder="you@example.com">
+            </div>
+
+            <div id="choiceButtons">
+                <button type="button" class="btn btn-primary" data-action="choose-password">Continue with Password</button>
+                <div class="divider">or</div>
+                <button type="button" class="btn btn-secondary" id="choosePasskey" data-action="register-with-passkey">Continue with Passkey</button>
+            </div>
+
+            <div id="passwordFields" class="password-fields">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" minlength="6" placeholder="At least 6 characters">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </div>
+        </form>
+
+        <p class="link">Already have an account? <a th:href="@{/login}">Sign in</a></p>
+    </div>
+
+    <script th:src="@{/js/passkeys.js}"></script>
+</body>
+
+</html>
