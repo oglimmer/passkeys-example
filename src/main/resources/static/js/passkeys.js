@@ -5,7 +5,10 @@
 
   function base64UrlEncode(buffer) {
     const bytes = new Uint8Array(buffer);
-    const binary = String.fromCharCode(...bytes);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
     return btoa(binary)
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
@@ -260,15 +263,55 @@
     }
   }
 
+  // -- UI state transitions --
+
+  function showEmailLoginForm() {
+    document.getElementById('choiceButtons').style.display = 'none';
+    document.getElementById('backLink').style.display = 'block';
+    const form = document.getElementById('emailPasswordForm');
+    form.style.display = 'block';
+    const emailInput = document.getElementById('username');
+    emailInput.required = true;
+    document.getElementById('password').required = true;
+    emailInput.focus();
+  }
+
+  function showChoiceButtons() {
+    document.getElementById('emailPasswordForm').style.display = 'none';
+    document.getElementById('backLink').style.display = 'none';
+    document.getElementById('username').required = false;
+    document.getElementById('password').required = false;
+    document.getElementById('choiceButtons').style.display = '';
+  }
+
+  function showPasswordFields() {
+    document.getElementById('choiceButtons').style.display = 'none';
+    const passwordInput = document.getElementById('password');
+    document.getElementById('passwordFields').classList.add('visible');
+    passwordInput.required = true;
+    document.getElementById('confirmPassword').required = true;
+    passwordInput.focus();
+  }
+
   // -- Event binding --
+
+  const actions = {
+    'register-passkey': () => registerPasskey(),
+    'register-with-passkey': () => registerWithPasskey(),
+    'login-passkey': () => loginWithPasskey(),
+    'delete-passkey': (_e, target) => deletePasskey(target.dataset.credentialId),
+    'back-to-choices': () => showChoiceButtons(),
+    'choose-email-login': () => showEmailLoginForm(),
+    'choose-password': () => showPasswordFields(),
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
     // If email/password form is already visible (e.g. after login error), enable required fields
-    var loginForm = document.getElementById('emailPasswordForm');
+    const loginForm = document.getElementById('emailPasswordForm');
     if (loginForm && loginForm.style.display !== 'none') {
-      var emailField = document.getElementById('username');
+      const emailField = document.getElementById('username');
       if (emailField) { emailField.required = true; emailField.focus(); }
-      var pwField = document.getElementById('password');
+      const pwField = document.getElementById('password');
       if (pwField) pwField.required = true;
     }
 
@@ -276,39 +319,8 @@
       const target = e.target.closest('[data-action]');
       if (!target) return;
 
-      const action = target.dataset.action;
-      if (action === 'register-passkey') {
-        registerPasskey();
-      } else if (action === 'register-with-passkey') {
-        registerWithPasskey();
-      } else if (action === 'login-passkey') {
-        loginWithPasskey();
-      } else if (action === 'delete-passkey') {
-        deletePasskey(target.dataset.credentialId);
-      } else if (action === 'back-to-choices') {
-        document.getElementById('emailPasswordForm').style.display = 'none';
-        document.getElementById('backLink').style.display = 'none';
-        document.getElementById('username').required = false;
-        document.getElementById('password').required = false;
-        document.getElementById('choiceButtons').style.display = '';
-      } else if (action === 'choose-email-login') {
-        document.getElementById('choiceButtons').style.display = 'none';
-        document.getElementById('backLink').style.display = 'block';
-        var form = document.getElementById('emailPasswordForm');
-        form.style.display = 'block';
-        var emailInput = document.getElementById('username');
-        emailInput.required = true;
-        document.getElementById('password').required = true;
-        emailInput.focus();
-      } else if (action === 'choose-password') {
-        document.getElementById('choiceButtons').style.display = 'none';
-        var fields = document.getElementById('passwordFields');
-        fields.classList.add('visible');
-        var pwInput = document.getElementById('password');
-        pwInput.required = true;
-        document.getElementById('confirmPassword').required = true;
-        pwInput.focus();
-      }
+      const handler = actions[target.dataset.action];
+      if (handler) handler(e, target);
     });
   });
 })();
