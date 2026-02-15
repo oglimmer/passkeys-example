@@ -22,8 +22,8 @@ The app starts at [http://localhost:8080](http://localhost:8080).
 
 ## Tech Stack
 
-- Spring Boot 3.4.3 (Web, Security, Data JPA, Thymeleaf)
-- WebAuthn4J for passkey credential handling
+- Spring Boot 4.0.2 (Web, Security, Data JPA, Thymeleaf)
+- Spring Security WebAuthn for passkey credential handling
 - H2 file-based database (auto-created at `./data/passkeys`)
 - Lombok
 
